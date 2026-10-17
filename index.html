@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sistema de Missões</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Missões">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#070b16">
+
+<style>
+:root{--bg:#070b16;--card:#0f1730;--line:#1f2f5c;--blue:#4da3ff;--glow:#2b7fff;--text:#e6eeff;--mut:#8a9bc4;--ok:#3ddc97;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 50% -10%,#14275a,var(--bg) 60%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--blue);text-align:center;margin:8px 0 18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 0 24px rgba(43,127,255,.12)}
+.top{display:flex;align-items:center;gap:14px}
+.rank{width:64px;height:64px;border-radius:12px;border:2px solid var(--blue);display:grid;place-items:center;font-size:30px;font-weight:800;color:var(--blue);box-shadow:0 0 18px var(--glow) inset,0 0 14px rgba(43,127,255,.4)}
+.lvl{font-size:22px;font-weight:700}
+.sub{color:var(--mut);font-size:13px}
+.bar{height:10px;background:#0a1226;border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--glow),#7fd0ff);transition:width .5s}
+.xp{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-size:18px}
+.stats span{font-size:11px;color:var(--mut)}
+h2{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin:0 0 12px}
+.q{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0}
+.q .n{font-weight:600}
+.q .t{font-size:13px;color:var(--mut)}
+button{font:inherit;cursor:pointer;border:1px solid var(--blue);background:transparent;color:var(--blue);padding:9px 14px;border-radius:10px;font-weight:600}
+button:hover{background:rgba(77,163,255,.12)}
+button.done{border-color:var(--ok);color:var(--ok);background:rgba(61,220,151,.1);cursor:default}
+.foot{display:flex;justify-content:space-between;font-size:13px;color:var(--mut)}
+.reset{background:none;border:0;color:var(--mut);font-size:12px;text-decoration:underline;font-weight:400;padding:0}
+#toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translate(-50%,-120px);background:var(--card);border:1px solid var(--blue);padding:12px 18px;border-radius:12px;transition:transform .4s;box-shadow:0 0 24px var(--glow);z-index:5;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+.note{font-size:12px;color:var(--mut);text-align:center;margin-top:10px;line-height:1.5}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tabs button{flex:1;border-color:var(--line);color:var(--mut)}
+.tabs button.on{border-color:var(--blue);color:var(--blue);background:rgba(77,163,255,.12)}
+.wg{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;align-items:end}
+.wb{height:80px;background:#0a1226;border:1px solid var(--line);border-radius:8px;display:flex;align-items:flex-end;overflow:hidden}
+.wb i{display:block;width:100%;background:linear-gradient(0deg,var(--glow),#7fd0ff)}
+.wd b{display:block;font-size:12px;margin-top:4px}
+.wd span{font-size:11px;color:var(--mut);text-transform:capitalize}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.fg label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}
+.fg .full{grid-column:1/-1}
+input,select{font:inherit;font-size:16px;background:#0a1226;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px;width:100%}
+.st{display:flex;align-items:center;gap:8px}
+.st b{min-width:18px;text-align:center}
+.st button{padding:4px 11px}
+.mr{margin-top:10px}
+.mr .bar{margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:6px 11px;font-size:13px;border-color:var(--line);color:var(--mut)}
+.chip.on{border-color:var(--ok);color:var(--ok);background:rgba(61,220,151,.1)}
+.tb{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.tb td,.tb th{padding:6px 4px;border-top:1px solid var(--line);text-align:right}
+.tb th{color:var(--mut);font-weight:500;font-size:11px}
+.tb td:first-child,.tb th:first-child{text-align:left}
+.tag{font-size:10px;border:1px solid var(--blue);color:var(--blue);border-radius:6px;padding:1px 5px;margin-left:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Sistema de Missões</h1>
+<div class="panel">
+ <div class="top">
+  <div class="rank" id="rank">E</div>
+  <div><div class="lvl">Nível <span id="lvl">1</span></div><div class="sub" id="title">Novato</div></div>
+ </div>
+ <div class="bar"><i id="xpbar"></i></div>
+ <div class="xp"><span id="xptxt">0 / 100 XP</span><span id="streak">Sequência: 0 dias</span></div>
+</div>
+<div class="tabs"><button class="on" data-tab="m">Missões</button><button data-tab="w">Semana</button><button data-tab="d">Dieta</button></div>
+<div id="tab-m">
+<div class="panel">
+ <h2>Atributos</h2>
+ <div class="stats">
+  <div><b id="s0">0</b><span>Força</span></div>
+  <div><b id="s1">0</b><span>Core</span></div>
+  <div><b id="s2">0</b><span>Pernas</span></div>
+  <div><b id="s3">0</b><span>Resistência</span></div>
+ </div>
+</div>
+<div class="panel">
+ <h2>Missões diárias</h2>
+ <div id="quests"></div>
+ <div class="sub" style="margin-top:10px">Complete todas para ganhar bônus de XP.</div>
+</div>
+</div>
+<div id="tab-w" hidden>
+ <div class="panel"><h2>Últimos 7 dias</h2><div class="wg" id="wgrid"></div><div class="sub" id="wsum" style="margin-top:12px"></div></div>
+ <div class="panel"><h2>Meta da semana (7 dias)</h2><div id="wgoal" class="sub"></div></div>
+</div>
+<div id="tab-d" hidden>
+ <div class="panel"><h2>Seus dados</h2>
+  <div class="fg">
+   <label>Sexo<select id="d-sex"><option value="m">Masculino</option><option value="f">Feminino</option></select></label>
+   <label>Idade (anos)<input id="d-age" type="number" inputmode="numeric"></label>
+   <label>Altura (ex.: 178 ou 1,78)<input id="d-h" type="text" inputmode="decimal"></label>
+   <label>Peso (kg)<input id="d-w" type="number" inputmode="decimal" step="any"></label>
+   <label class="full">Nível de atividade<select id="d-act"><option value="1.2">Sedentário</option><option value="1.375">Leve (1 a 3 treinos por semana)</option><option value="1.55">Moderado (3 a 5 treinos por semana)</option><option value="1.725">Intenso (6 a 7 treinos por semana)</option></select></label>
+   <label class="full">Objetivo<select id="d-goal"><option value="perder">Perder gordura (−500 kcal)</option><option value="manter">Manter o peso</option><option value="ganhar">Ganhar massa (+300 kcal)</option></select></label>
+   <label>Cintura (cm, opcional)<input id="d-waist" type="number" inputmode="decimal" step="any"></label>
+   <label>Pescoço (cm, opcional)<input id="d-neck" type="number" inputmode="decimal" step="any"></label>
+   <label class="full">Quadril (cm, só para mulheres)<input id="d-hip" type="number" inputmode="decimal" step="any"></label>
+  </div>
+  <div class="sub" id="d-res"></div>
+ </div>
+ <div class="panel"><h2>Seu peso e gordura corporal</h2><div id="d-body" class="sub"></div>
+ </div>
+ <div class="panel"><h2>Sua lista de compras</h2><div class="sub" style="margin-bottom:10px">Toque nos alimentos que você consegue comprar por semana. O app calcula quanto comer de cada um.</div><div id="d-search" style="display:none;gap:8px;margin-bottom:8px"><input id="s-q" type="text" placeholder="Buscar alimento (ex.: coxa de frango, tapioca)"><button id="s-go">Buscar</button></div><div class="sub" id="s-msg" style="margin-bottom:10px"></div><div class="chips" id="d-foods"></div>
+  <h2 style="margin-top:16px">Outro alimento (valores por 100 g)</h2>
+  <div class="fg"><label class="full">Nome<input id="c-n" type="text"></label><label>Calorias (kcal)<input id="c-k" type="number" inputmode="decimal"></label><label>Proteína (g)<input id="c-p" type="number" inputmode="decimal"></label><label>Carboidrato (g)<input id="c-c" type="number" inputmode="decimal"></label><label>Gordura (g)<input id="c-f" type="number" inputmode="decimal"></label></div>
+  <button id="d-add">Adicionar à lista</button><button class="reset" id="d-clear" style="margin-left:12px">Limpar lista</button></div>
+ <div class="panel"><h2>Quanto comer por dia</h2><div id="d-plan"></div><h2 style="margin-top:16px">Total do dia</h2><div id="d-total"></div><div class="sub" id="d-tip" style="margin-top:12px"></div></div>
+ <div class="panel" id="ia-panel" style="display:none"><h2>Dieta inteligente (IA)</h2>
+  <div class="sub" style="margin-bottom:10px">A IA monta e completa a sua dieta do dia, com refeições e quantidades, usando a sua lista de compras e fechando as suas metas.</div>
+  <div class="fg"><label>Refeições por dia<select id="ia-n"><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label><label>Preferências (opcional)<input id="ia-prefs" type="text" placeholder="ex.: sem lactose"></label></div>
+  <div style="display:flex;gap:8px;align-items:center"><button id="ia-go">Montar minha dieta</button><button id="ia-stop" class="reset" style="display:none">Parar</button></div>
+  <div class="sub" id="ia-msg" style="margin-top:10px"></div><div id="ia-out"></div></div>
+ <div class="panel"><h2>Projeção de peso e massa</h2>
+  <div class="fg"><label>Experiência de treino<select id="d-exp"><option value="0">Iniciante</option><option value="1">Intermediário</option><option value="2">Avançado</option></select></label><label>Quantos dias?<input id="d-days" type="number" inputmode="numeric" placeholder="ex.: 45"></label></div>
+  <div id="d-proj" class="sub"></div></div>
+ <p class="note">Estimativa pela fórmula de Mifflin-St Jeor, com ajuste de calorias conforme o objetivo (−500 kcal para perder gordura, +300 kcal para ganhar massa) e 2 g de proteína por kg de peso de referência. Valores dos alimentos são aproximados. Para um plano individual, procure um nutricionista.</p>
+</div>
+<div class="foot"><span id="date"></span><button class="reset" id="reset">Reiniciar progresso</button></div>
+<p class="note">Aqueça antes, hidrate-se e respeite seus limites. Em caso de dor ou condição de saúde, consulte um profissional.</p>
+</div>
+<div id="toast"></div>
+<script>
+var KEY="sistema-missoes-v1";
+var QUESTS=[
+ {id:0,name:"Flexões",unit:"rep",base:10,inc:2,stat:0},
+ {id:1,name:"Abdominais",unit:"rep",base:15,inc:3,stat:1},
+ {id:2,name:"Agachamentos",unit:"rep",base:15,inc:3,stat:2},
+ {id:3,name:"Corrida",unit:"km",base:1,inc:0.2,stat:3}
+];
+var TITLES=["Novato","Aprendiz","Guerreiro","Veterano","Elite","Lendário"];
+var RANKS=["E","D","C","B","A","S"];
+var LIMITS=[5,10,20,35,50];
+function today(d){d=d||new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function fresh(){return {level:1,xp:0,stats:[0,0,0,0],streak:0,lastAll:"",day:today(),done:[],hist:{},diet:{sex:"m",age:"",h:"",w:"",act:"1.55",q:{},sel:[],custom:[]}}}
+var S=fresh();
+try{var raw=localStorage.getItem(KEY);if(raw){S=Object.assign(fresh(),JSON.parse(raw))}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function need(l){return 100+50*(l-1)}
+function target(q){var v=q.base+q.inc*(S.level-1);return q.unit==="km"?v.toFixed(1):String(Math.round(v))}
+function rankIdx(){var l=S.level;for(var i=0;i<LIMITS.length;i++){if(l<LIMITS[i])return i}return 5}
+function toast(m){var t=document.getElementById("toast");t.innerHTML=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2600)}
+function gain(x){
+ S.xp+=x;var up=false;
+ while(S.xp>=need(S.level)){S.xp-=need(S.level);S.level++;up=true}
+ return up;
+}
+function complete(id){
+ if(S.done.indexOf(id)>-1)return;
+ S.done.push(id);S.hist[today()]=S.done.length;
+ var q=QUESTS[id];
+ var amt=q.unit==="km"?parseFloat(target(q)):parseInt(target(q),10);
+ S.stats[q.stat]+=amt;
+ var up=gain(30),msg="+30 XP";
+ if(S.done.length===QUESTS.length){
+  var y=new Date();y.setDate(y.getDate()-1);
+  S.streak=(S.lastAll===today(y))?S.streak+1:1;
+  S.lastAll=today();
+  if(gain(40))up=true;
+  msg="Missões completas! +70 XP";
+ }
+ if(up)msg="⬆ NÍVEL "+S.level+"!<br>"+msg;
+ toast(msg);save();render();
+}
+function render(){
+ if(S.day!==today()){S.day=today();S.done=[]}
+ var ri=rankIdx();
+ document.getElementById("rank").textContent=RANKS[ri];
+ document.getElementById("lvl").textContent=S.level;
+ document.getElementById("title").textContent="Rank "+RANKS[ri]+" · "+TITLES[ri];
+ var n=need(S.level);
+ document.getElementById("xpbar").style.width=Math.min(100,S.xp/n*100)+"%";
+ document.getElementById("xptxt").textContent=S.xp+" / "+n+" XP";
+ var y=new Date();y.setDate(y.getDate()-1);
+ var alive=(S.lastAll===today()||S.lastAll===today(y))?S.streak:0;
+ document.getElementById("streak").textContent="Sequência: "+alive+(alive===1?" dia":" dias");
+ for(var i=0;i<4;i++){var v=S.stats[i];document.getElementById("s"+i).textContent=i===3?v.toFixed(1)+" km":v}
+ document.getElementById("date").textContent=new Date().toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+ var h="";
+ QUESTS.forEach(function(q){
+  var d=S.done.indexOf(q.id)>-1;
+  h+='<div class="q"><div><div class="n">'+q.name+'</div><div class="t">Meta: '+target(q)+(q.unit==="km"?" km":" repetições")+'</div></div>'
+   +'<button class="'+(d?"done":"")+'" data-id="'+q.id+'">'+(d?"Concluída ✓":"Concluir")+'</button></div>';
+ });
+ document.getElementById("quests").innerHTML=h;
+ renderWeek();renderDiet();
+}
+document.getElementById("quests").addEventListener("click",function(e){
+ var b=e.target.closest("button");if(b)complete(parseInt(b.getAttribute("data-id"),10));
+});
+document.getElementById("reset").addEventListener("click",function(){
+ if(confirm("Apagar todo o progresso?")){S=fresh();save();fillInputs();render()}
+});
+var FOODS=[
+["Peito de frango grelhado",100,"g",0.5,165,31,0,3.6,4],
+["Ovo cozido",1,"un",1,72,6.3,0.4,4.8,6],
+["Carne bovina (patinho)",100,"g",0.5,219,36,0,7,3],
+["Carne moída (acém)",100,"g",0.5,212,26,0,11,3],
+["Tilápia grelhada",100,"g",0.5,128,26,0,2.7,3],
+["Atum em lata (natural)",100,"g",0.5,116,26,0,1,2],
+["Sardinha em lata",100,"g",0.5,208,25,0,11,1.5],
+["Whey protein",30,"g",1,120,24,3,1.5,3],
+["Leite integral",200,"ml",1,122,6.4,9.4,6.6,4],
+["Iogurte natural",170,"g",1,104,6,8,5.5,3],
+["Queijo minas frescal",50,"g",1,82,8.5,1.5,10,3],
+["Arroz branco cozido",100,"g",0.5,130,2.5,28,0.3,5],
+["Feijão cozido",100,"g",0.5,77,4.8,14,0.5,4],
+["Lentilha cozida",100,"g",0.5,116,9,20,0.4,3],
+["Grão-de-bico cozido",100,"g",0.5,164,8.9,27,2.6,3],
+["Batata-doce cozida",100,"g",0.5,86,1.6,20,0.1,5],
+["Batata inglesa cozida",100,"g",0.5,87,1.9,20,0.1,4],
+["Mandioca cozida",100,"g",0.5,125,0.6,30,0.3,3],
+["Cuscuz de milho",100,"g",0.5,112,2.2,25,0.7,4],
+["Macarrão cozido",100,"g",0.5,158,5.8,31,0.9,5],
+["Pão integral",2,"fatias",1,120,5,21,1.5,4],
+["Pão francês",1,"un",1,150,4.7,29,1.6,3],
+["Aveia",40,"g",1,150,5.5,27,3,3],
+["Banana",1,"un",1,89,1.1,23,0.3,4],
+["Maçã",1,"un",1,95,0.5,25,0.3,3],
+["Laranja",1,"un",1,62,1.2,15,0.2,3],
+["Amendoim",30,"g",1,170,7.7,4.8,14.5,2],
+["Pasta de amendoim",15,"g",1,94,3.8,3.2,8,3],
+["Azeite de oliva",13,"g",1,117,0,0,13,2],
+["Abacate",100,"g",0.5,160,2,9,15,1.5],
+["Brócolis cozido",100,"g",0.5,35,2.4,7,0.4,3]
+];
+S.diet.sel=S.diet.sel||[];S.diet.custom=S.diet.custom||[];
+function solve(list,t){
+ var q=list.map(function(){return 0}),k=0,p=0,c=0,f=0,n,i,x,l,best,bl;
+ function loss(k,p,c,f){return 2*Math.abs(t.p-p)/t.p+Math.abs(t.kcal-k)/t.kcal+0.5*Math.abs(t.c-c)/Math.max(t.c,1)+0.5*Math.abs(t.f-f)/t.f}
+ var cur=loss(0,0,0,0);
+ for(n=0;n<500;n++){
+  best=-1;bl=cur;
+  for(i=0;i<list.length;i++){
+   x=list[i];if(q[i]+x[3]>x[8]+1e-9)continue;
+   l=loss(k+x[4]*x[3],p+x[5]*x[3],c+x[6]*x[3],f+x[7]*x[3]);
+   if(l<bl-1e-9){bl=l;best=i}
+  }
+  if(best<0)break;
+  x=list[best];q[best]+=x[3];k+=x[4]*x[3];p+=x[5]*x[3];c+=x[6]*x[3];f+=x[7]*x[3];cur=bl;
+ }
+ return {q:q,k:k,p:p,c:c,f:f};
+}
+function tab(n){["m","w","d"].forEach(function(k){document.getElementById("tab-"+k).hidden=(k!==n);document.querySelector('[data-tab="'+k+'"]').classList.toggle("on",k===n)})}
+document.querySelector(".tabs").addEventListener("click",function(e){var b=e.target.closest("button");if(b)tab(b.getAttribute("data-tab"))});
+function renderWeek(){
+ var h="",tot=0,perf=0,i,d,k,c;
+ for(i=6;i>=0;i--){
+  d=new Date();d.setDate(d.getDate()-i);k=today(d);c=S.hist[k]||0;tot+=c;if(c===4)perf++;
+  h+='<div class="wd"><div class="wb"><i style="height:'+(c/4*100)+'%"></i></div><b>'+c+'/4</b><span>'+d.toLocaleDateString("pt-BR",{weekday:"short"}).replace(".","")+'</span></div>';
+ }
+ document.getElementById("wgrid").innerHTML=h;
+ document.getElementById("wsum").innerHTML="<b>"+tot+" de 28</b> missões ("+Math.round(tot/28*100)+"%) · "+perf+(perf===1?" dia perfeito":" dias perfeitos");
+ var g="";
+ QUESTS.forEach(function(q){
+  var v=q.unit==="km"?(parseFloat(target(q))*7).toFixed(1)+" km":parseInt(target(q),10)*7+" repetições";
+  g+=q.name+": <b>"+v+"</b><br>";
+ });
+ document.getElementById("wgoal").innerHTML=g;
+}
+function num(v){return parseFloat(String(v==null?"":v).replace(",","."))||0}
+function hcm(d){var h=num(d.h);return h>0&&h<3?h*100:h}
+function goalOf(d){var h=hcm(d)/100,w=num(d.w);if(d.goal)return d.goal;return(h>0&&w>0&&w/(h*h)>=25)?"perder":"ganhar"}
+function calc(){
+ var d=S.diet,a=num(d.age),h=hcm(d),w=num(d.w);
+ if(!(a>0&&h>0&&w>0))return null;
+ var bmr=10*w+6.25*h-5*a+(d.sex==="m"?5:-161);
+ var tdee=bmr*parseFloat(d.act),g=goalOf(d),adj=g==="perder"?-500:(g==="ganhar"?300:0);
+ var kcal=Math.max(tdee+adj,bmr),wmax=24.9*Math.pow(h/100,2),ref=Math.min(w,wmax),p=2*ref,f=0.9*ref;
+ return {bmr:bmr,tdee:tdee,kcal:kcal,p:p,f:f,c:Math.max((kcal-p*4-f*9)/4,0),goal:g,gl:g==="perder"?"perder gordura":(g==="ganhar"?"ganhar massa":"manter o peso")};
+}
+function f1(n){return (Math.round(n*10)/10).toString().replace(".",",")}
+function f2(n){return (Math.round(n*100)/100).toString().replace(".",",")}
+function bfClass(sex,b){
+ var c=sex==="m"?(b<14?"Atlético":b<18?"Fitness":b<25?"Médio":"Acima da média"):(b<21?"Atlético":b<25?"Fitness":b<32?"Médio":"Acima da média");
+ return "Faixa: <b>"+c+"</b>";
+}
+function sgn(n){return (n>=0?"+":"−")+f1(Math.abs(n))}
+function renderProj(t,intake){
+ var el=document.getElementById("d-proj"),d=S.diet;
+ if(!t){el.textContent="Preencha seus dados para ver a projeção.";return}
+ var kc=intake>0?intake:t.kcal,w0=num(d.w),hm=hcm(d)/100,hi=24.9*hm*hm,stopW=w0>hi?hi:18.5*hm*hm;
+ var ex=parseInt(d.exp||"0",10),g=t.goal;
+ var rate={ganhar:[0.7,0.35,0.15],manter:[0.4,0.15,0.05],perder:[0.3,0.1,0]}[g][ex]||0;
+ var custom=Math.round(num(d.days)),pts=[7,30,90,180,365];
+ if(custom>0&&custom<=1095&&pts.indexOf(custom)<0)pts.push(custom);
+ pts.sort(function(a,b){return a-b});
+ var maxD=Math.max(365,custom>0&&custom<=1095?custom:0),wt=w0,lean=0,fat=0,rec={},reach=null,day,tdee,dw,dl;
+ for(day=1;day<=maxD;day++){
+  tdee=t.tdee+(wt-w0)*15;
+  dw=(kc-tdee)/7700;
+  if(g==="perder"&&wt+dw<stopW)dw=Math.min(0,stopW-wt)>-0.0001?0:stopW-wt;
+  dl=rate/30*Math.max(0.2,1-day/365);
+  wt+=dw;lean+=dl;fat+=dw-dl;
+  if(reach===null&&g==="perder"&&w0>hi&&wt<=hi)reach=day;
+  if(pts.indexOf(day)>-1)rec[day]={w:wt,l:lean,f:fat};
+ }
+ var bal=kc-t.tdee,x="Com "+Math.round(kc)+" kcal por dia, o balanço é de <b>"+(bal>=0?"+":"−")+Math.round(Math.abs(bal))+" kcal/dia</b>.";
+ x+='<table class="tb"><tr><th>Período</th><th>Peso</th><th>Gordura</th><th>Massa magra</th></tr>';
+ pts.forEach(function(p){
+  var r=rec[p],lb=p<=30?p+(p===1?" dia":" dias"):(p%30===0?(p/30)+" meses":(p===365?"1 ano":p+" dias"));
+  if(p===365)lb="1 ano";
+  x+="<tr><td>"+lb+"</td><td><b>"+f1(r.w)+" kg</b> ("+sgn(r.w-w0)+")</td><td>"+sgn(r.f)+" kg</td><td>"+sgn(r.l)+" kg</td></tr>";
+ });
+ x+="</table>";
+ if(g==="perder"&&w0>hi){x+="<br>"+(reach?"Nesse ritmo, você chega à faixa saudável (até "+f1(hi)+" kg) em cerca de <b>"+(reach<60?reach+" dias":f1(reach/30)+" meses")+"</b>.":"Nesse ritmo, você ainda não chega à faixa saudável dentro desse prazo.")}
+ else if(g!=="perder"&&w0>hi){x+="<br>Para chegar à faixa saudável de peso, use o objetivo <b>Perder gordura</b>."}
+ x+='<br><span style="font-size:12px">Estimativa com base em 7.700 kcal por kg de gordura e em taxas médias de ganho de massa magra para o seu nível de treino. Varia muito de pessoa para pessoa e diminui com o tempo. Supõe que você cumpre as missões de treino e bate a meta de proteína. Ao chegar à faixa saudável, a projeção para de perder peso.</span>';
+ el.innerHTML=x;
+}
+function normPlan(r){
+ if(!r||!Array.isArray(r.refeicoes)||!r.refeicoes.length)throw {code:"invalid_json"};
+ var list=allFoods(),meals=[];
+ r.refeicoes.forEach(function(ml){
+  var its=[];
+  (ml.itens||[]).forEach(function(it){
+   var nm=String(it.alimento||"").slice(0,50),g=num(it.gramas),v,f,k;
+   if(!nm||!(g>0))return;
+   f=list.filter(function(x){return x[0].toLowerCase()===nm.toLowerCase()&&(x[2]==="g"||x[2]==="ml")})[0];
+   if(f){k=g/f[1];v={k:f[4]*k,p:f[5]*k,c:f[6]*k,f:f[7]*k}}
+   else v={k:num(it.kcal),p:num(it.prot),c:num(it.carb),f:num(it.gord)};
+   its.push({n:nm,medida:String(it.medida||"").slice(0,40),g:g,k:v.k,p:v.p,c:v.c,f:v.f,sug:!!it.sugerido});
+  });
+  if(its.length)meals.push({nome:String(ml.nome||"Refeição").slice(0,40),itens:its});
+ });
+ if(!meals.length)throw {code:"invalid_json"};
+ return {meals:meals,dicas:(Array.isArray(r.dicas)?r.dicas:[]).slice(0,5).map(function(x){return String(x).slice(0,200)})};
+}
+function totalsOf(pl){var o={k:0,p:0,c:0,f:0};pl.meals.forEach(function(m){m.itens.forEach(function(i){o.k+=i.k;o.p+=i.p;o.c+=i.c;o.f+=i.f})});return o}
+function promptIA(t,list,n,prefs){
+ var foods=list.length?list.map(function(x){return x[0]+" ("+x[1]+" "+x[2]+"): "+Math.round(x[4])+" kcal, "+x[5]+" g prot, "+x[6]+" g carb, "+x[7]+" g gord"}).join("\n"):"(nenhum informado)";
+ return "Você é um nutricionista esportivo. Monte um plano alimentar de UM dia, em "+n+" refeições, para o objetivo: "+t.gl+".\n"
+ +"Metas do dia: "+Math.round(t.kcal)+" kcal, "+Math.round(t.p)+" g de proteína, "+Math.round(t.c)+" g de carboidratos, "+Math.round(t.f)+" g de gorduras. Os totais de calorias e de proteína devem ficar a no máximo 5% das metas.\n"
+ +"Alimentos que a pessoa consegue comprar (valores por porção):\n"+foods+"\n"
+ +"Use principalmente esses alimentos. Se for impossível bater as metas só com eles, complete com alimentos comuns e baratos no Brasil e marque \"sugerido\":true nesses itens.\n"
+ +"Preferências ou restrições: "+(prefs||"nenhuma")+"\n"
+ +"Dê a quantidade de cada alimento em gramas (ou ml) e os valores nutricionais dessa quantidade. Para alimentos da lista, use os valores informados proporcionalmente. Some os totais e confira antes de responder. Distribua a proteína ao longo das refeições.\n"
+ +"Responda somente com JSON, sem texto extra: {\"refeicoes\":[{\"nome\":\"Café da manhã\",\"itens\":[{\"alimento\":\"nome\",\"medida\":\"2 ovos\",\"gramas\":100,\"kcal\":0,\"prot\":0,\"carb\":0,\"gord\":0,\"sugerido\":false}]}],\"dicas\":[\"até 3 dicas curtas\"]}";
+}
+function offTarget(tt,t){return Math.abs(tt.k-t.kcal)/t.kcal>0.07||tt.p<t.p*0.93||tt.p>t.p*1.2}
+var IACTL=null;
+async function montarIA(){
+ var t=calc(),m=document.getElementById("ia-msg"),btn=document.getElementById("ia-go"),stop=document.getElementById("ia-stop"),d=S.diet;
+ if(!SAMPLE)return;
+ if(!t){m.textContent="Preencha idade, altura e peso primeiro.";return}
+ var list=allFoods().filter(function(x){return d.sel.indexOf(x[0])>-1}),n=parseInt(document.getElementById("ia-n").value,10)||4,prefs=document.getElementById("ia-prefs").value.trim().slice(0,300);
+ IACTL=new AbortController();btn.disabled=true;stop.style.display="";
+ m.textContent="A IA está montando sua dieta… pode levar até 1 minuto.";
+ try{
+  var base=promptIA(t,list,n,prefs);
+  var plan=normPlan(await SAMPLE.json(base,{signal:IACTL.signal,cache:false})),tt=totalsOf(plan);
+  if(offTarget(tt,t)){
+   m.textContent="Ajustando as quantidades para fechar as metas…";
+   var prev=JSON.stringify(plan.meals.map(function(ml){return {nome:ml.nome,itens:ml.itens.map(function(i){return {alimento:i.n,medida:i.medida,gramas:Math.round(i.g),kcal:Math.round(i.k),prot:Math.round(i.p),carb:Math.round(i.c),gord:Math.round(i.f),sugerido:i.sug}})}}));
+   var fix=base+"\n\nA tentativa anterior somou "+Math.round(tt.k)+" kcal e "+Math.round(tt.p)+" g de proteína, fora das metas. Plano anterior: "+prev+"\nRefaça, ajustando as quantidades e os alimentos para ficar dentro de 5% das metas.";
+   plan=normPlan(await SAMPLE.json(fix,{signal:IACTL.signal,cache:false}));
+  }
+  S.diet.plan=plan;save();m.textContent="";renderDiet();
+ }catch(e){
+  var c=e&&e.code;
+  if(c==="cancelled")m.textContent="Cancelado.";
+  else if(c==="not_granted"||c==="sampling_disabled"||c==="not_declared"||c==="capability_disabled"){document.getElementById("ia-panel").style.display="none"}
+  else if(c==="rate_limited")m.textContent="Muitas tentativas seguidas. Tente de novo daqui a pouco.";
+  else if(c==="invalid_json"||c==="empty_completion"||c==="refused")m.textContent="A IA não conseguiu montar a dieta dessa vez. Tente de novo.";
+  else m.textContent="Não consegui montar agora. Tente de novo em instantes.";
+ }finally{btn.disabled=false;stop.style.display="none"}
+}
+function renderIA(t){
+ var el=document.getElementById("ia-out"),pl=S.diet.plan;
+ if(!pl||!pl.meals||!pl.meals.length){el.innerHTML="";return}
+ var tot={k:0,p:0,c:0,f:0},h="",agg={},order=[],shop="",tips="";
+ pl.meals.forEach(function(ml){
+  var mk=0,mp=0,rows="";
+  ml.itens.forEach(function(it){
+   mk+=it.k;mp+=it.p;tot.k+=it.k;tot.p+=it.p;tot.c+=it.c;tot.f+=it.f;
+   rows+='<div class="q"><div><div class="n">'+esc(it.n)+(it.sug?' <span class="tag">sugerido</span>':'')+'</div><div class="t">'+esc(it.medida)+(it.medida?" · ":"")+Math.round(it.g)+' g</div></div><div class="t" style="text-align:right">'+Math.round(it.k)+" kcal<br>"+f1(it.p)+" g prot</div></div>";
+   var key=it.n.toLowerCase();if(!agg[key]){agg[key]={n:it.n,g:0};order.push(key)}agg[key].g+=it.g;
+  });
+  h+='<h2 style="margin-top:18px">'+esc(ml.nome)+" · "+Math.round(mk)+" kcal · "+f1(mp)+" g prot</h2>"+rows;
+ });
+ order.forEach(function(k){var a=agg[k],w=a.g*7;shop+=esc(a.n)+": <b>"+(w>=1000?f2(w/1000)+" kg":Math.round(w)+" g")+"</b><br>"});
+ (pl.dicas||[]).forEach(function(x){tips+="• "+esc(x)+"<br>"});
+ el.innerHTML=h+'<h2 style="margin-top:18px">Total da dieta</h2>'+mb("Calorias",tot.k,t?t.kcal:0," kcal")+mb("Proteína",tot.p,t?t.p:0," g")+mb("Carboidratos",tot.c,t?t.c:0," g")+mb("Gorduras",tot.f,t?t.f:0," g")
+  +'<h2 style="margin-top:18px">Lista de compras da semana</h2><div class="sub">'+shop+"</div>"+(tips?'<h2 style="margin-top:18px">Dicas</h2><div class="sub">'+tips+"</div>":"")
+  +'<div class="sub" style="font-size:12px;margin-top:14px">Gerado por IA com valores aproximados. Não substitui um nutricionista; se você tem alguma condição de saúde, consulte um profissional.</div>';
+}
+function renderBody(){
+ var d=S.diet,el=document.getElementById("d-body"),gs=document.getElementById("d-goal"),h=hcm(d),w=num(d.w);
+ if(gs&&document.activeElement!==gs)gs.value=goalOf(d);
+ if(!(h>0&&w>0)){el.textContent="Preencha altura e peso para ver seu IMC e quanto falta para a faixa saudável.";return}
+ var m=h/100,imc=w/(m*m),lo=18.5*m*m,hi=24.9*m*m,cl,out,x;
+ cl=imc<18.5?"Abaixo do peso":imc<25?"Peso saudável":imc<30?"Sobrepeso":imc<35?"Obesidade grau 1":imc<40?"Obesidade grau 2":"Obesidade grau 3";
+ if(w>hi)out="Você está <b>"+f1(w-hi)+" kg acima</b> do limite da faixa saudável.";
+ else if(w<lo)out="Você está <b>"+f1(lo-w)+" kg abaixo</b> da faixa saudável.";
+ else out="Você está <b>dentro</b> da faixa saudável.";
+ x="IMC: <b>"+f1(imc)+"</b> · "+cl+"<br>Faixa saudável para "+f2(m)+" m: <b>"+f1(lo)+" a "+f1(hi)+" kg</b><br>"+out;
+ var wa=num(d.waist),ne=num(d.neck),hp=num(d.hip),bf=null;
+ if(wa>0&&ne>0&&wa>ne){
+  if(d.sex==="m")bf=495/(1.0324-0.19077*Math.log10(wa-ne)+0.15456*Math.log10(h))-450;
+  else if(hp>0)bf=495/(1.29579-0.35004*Math.log10(wa+hp-ne)+0.221*Math.log10(h))-450;
+ }
+ if(bf!==null&&bf>2&&bf<60){
+  var fat=w*bf/100;
+  x+="<br><br>Gordura corporal estimada: <b>"+f1(bf)+"%</b> (cerca de "+f1(fat)+" kg de gordura e "+f1(w-fat)+" kg de massa magra)<br>"+bfClass(d.sex,bf);
+ }else{x+="<br><br>Para estimar sua % de gordura, informe cintura e pescoço"+(d.sex==="m"?"":" e quadril")+" acima."}
+ x+='<br><span style="font-size:12px">O IMC não separa gordura de músculo, e a % de gordura é uma estimativa (método da Marinha dos EUA). Uma avaliação com profissional dá o valor real.</span>';
+ el.innerHTML=x;
+}
+function mb(n,v,g,u){var p=g>0?Math.min(100,v/g*100):0;return '<div class="mr"><div class="xp"><span>'+n+'</span><span>'+Math.round(v)+(g?' / '+Math.round(g):'')+u+'</span></div><div class="bar"><i style="width:'+p+'%"></i></div></div>'}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function allFoods(){return FOODS.concat(S.diet.custom.map(function(c){return [c.n,100,"g",0.5,c.k,c.p,c.c,c.f,3]}))}
+function fmtQ(x,q){
+ var v=Math.round(q*x[1]*10)/10,u=x[2];
+ if(u==="g"&&v>=1000){v=Math.round(v/10)/100;u="kg"}else if(u==="ml"&&v>=1000){v=Math.round(v/10)/100;u="L"}
+ return String(v).replace(".",",")+" "+u;
+}
+function renderDiet(){
+ var d=S.diet,all=allFoods(),t=calc(),h="",i,plan="",tot={k:0,p:0,c:0,f:0},s=null;
+ for(i=0;i<all.length;i++){h+='<button class="chip'+(d.sel.indexOf(all[i][0])>-1?' on':'')+'" data-i="'+i+'">'+esc(all[i][0])+'</button>'}
+ document.getElementById("d-foods").innerHTML=h;
+ var list=all.filter(function(x){return d.sel.indexOf(x[0])>-1});
+ if(t&&list.length){
+  s=solve(list,t);tot={k:s.k,p:s.p,c:s.c,f:s.f};
+  list.forEach(function(x,j){
+   var q=s.q[j];
+   if(q>0)plan+='<div class="q"><div class="n">'+esc(x[0])+'</div><div class="t" style="text-align:right">Dia: <b>'+fmtQ(x,q)+'</b><br>Semana: '+fmtQ(x,q*7)+'</div></div>';
+  });
+ }else{plan='<div class="sub">'+(t?"Escolha ao menos um alimento na sua lista.":"Preencha seus dados acima para calcular.")+'</div>'}
+ document.getElementById("d-plan").innerHTML=plan;renderBody();renderProj(t,s?tot.k:null);renderIA(t);
+ var r=document.getElementById("d-res");
+ if(t){r.innerHTML="Metabolismo basal: <b>"+Math.round(t.bmr)+"</b> kcal · Gasto diário: <b>"+Math.round(t.tdee)+"</b> kcal<br>Meta para "+t.gl+": <b>"+Math.round(t.kcal)+" kcal</b> · Proteína: <b>"+Math.round(t.p)+" g</b>"}
+ else{r.textContent="Preencha sexo, idade, altura e peso para calcular suas metas."}
+ document.getElementById("d-total").innerHTML=mb("Calorias",tot.k,t?t.kcal:0," kcal")+mb("Proteína",tot.p,t?t.p:0," g")+mb("Carboidratos",tot.c,t?t.c:0," g")+mb("Gorduras",tot.f,t?t.f:0," g");
+ var tip="";
+ if(!t){tip="Preencha seus dados e monte sua lista para ver as quantidades."}
+ else if(!list.length){tip="Selecione os alimentos que você consegue comprar."}
+ else if(tot.p<t.p*0.95){tip="Com essa lista chegou a <b>"+Math.round(tot.p)+" g</b> de proteína, e a meta é "+Math.round(t.p)+" g. Adicione mais fontes de proteína (frango, ovos, whey, atum, leite)."}
+ else if(t.goal!=="perder"&&tot.k<t.kcal*0.95){tip="A proteína está ok, mas faltam cerca de "+Math.round(t.kcal-tot.k)+" kcal. Adicione mais fontes de carboidrato ou gordura boa (arroz, batata-doce, aveia, pasta de amendoim)."}
+ else{tip="Meta batida! 💪 Essas quantidades fecham sua proteína e suas calorias para o seu objetivo."}
+ document.getElementById("d-tip").innerHTML=tip;
+}
+function fillInputs(){var d=S.diet;["sex","age","h","w","act","waist","neck","hip","days"].forEach(function(k){var e=document.getElementById("d-"+k);if(e)e.value=d[k]==null?"":d[k]});document.getElementById("d-goal").value=goalOf(d);document.getElementById("d-exp").value=d.exp||"0"}
+[["d-sex","sex"],["d-age","age"],["d-h","h"],["d-w","w"],["d-act","act"]].forEach(function(p){document.getElementById(p[0]).addEventListener("input",function(e){S.diet[p[1]]=e.target.value;save();renderDiet()})});
+document.getElementById("d-foods").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var n=allFoods()[parseInt(b.getAttribute("data-i"),10)][0],ix=S.diet.sel.indexOf(n);if(ix>-1)S.diet.sel.splice(ix,1);else S.diet.sel.push(n);save();renderDiet()});
+document.getElementById("d-clear").addEventListener("click",function(){S.diet.sel=[];save();renderDiet()});
+document.getElementById("d-add").addEventListener("click",function(){var v=function(id){return parseFloat(document.getElementById(id).value)||0},n=document.getElementById("c-n").value.trim();if(!n)return;S.diet.custom.push({n:n,k:v("c-k"),p:v("c-p"),c:v("c-c"),f:v("c-f")});S.diet.sel.push(n);["c-n","c-k","c-p","c-c","c-f"].forEach(function(id){document.getElementById(id).value=""});save();renderDiet()});
+var SAMPLE=null;
+(async function(){
+ try{if(typeof claude!=="undefined")SAMPLE=await claude.use("sample")}catch(e){SAMPLE=null}
+ if(SAMPLE){document.getElementById("d-search").style.display="flex";document.getElementById("ia-panel").style.display=""}
+})();
+async function buscar(){
+ var qEl=document.getElementById("s-q"),m=document.getElementById("s-msg"),btn=document.getElementById("s-go"),n=qEl.value.trim();
+ if(!n||!SAMPLE)return;
+ btn.disabled=true;m.textContent="Buscando…";
+ try{
+  var r=await SAMPLE.json('Responda somente com JSON, sem texto extra. Dê os valores nutricionais médios por 100 g do alimento "'+n.replace(/"/g,"")+'", como costuma ser consumido (cozido ou preparado, quando for o caso), com base em tabelas como a TACO. Formato: {"nome":"nome curto em português","kcal":número,"prot":número,"carb":número,"gord":número}. Se não for um alimento, responda {"erro":true}.',{modelTier:"quick"});
+  if(!r||r.erro||!(Number(r.kcal)>=0)){m.textContent="Não encontrei esse alimento. Tente outro nome."}
+  else{
+   var nm=String(r.nome||n).slice(0,40),ex=allFoods().filter(function(x){return x[0].toLowerCase()===nm.toLowerCase()})[0];
+   if(ex){
+    if(S.diet.sel.indexOf(ex[0])<0)S.diet.sel.push(ex[0]);
+    m.textContent=ex[0]+" já está na lista e foi selecionado.";
+   }else{
+    var o={n:nm,k:+r.kcal||0,p:+r.prot||0,c:+r.carb||0,f:+r.gord||0};
+    S.diet.custom.push(o);S.diet.sel.push(nm);
+    m.innerHTML="Adicionado: <b>"+esc(nm)+"</b> · por 100 g: "+Math.round(o.k)+" kcal, "+Math.round(o.p*10)/10+" g prot, "+Math.round(o.c*10)/10+" g carb, "+Math.round(o.f*10)/10+" g gord. Valores estimados, confira no rótulo.";
+   }
+   qEl.value="";save();renderDiet();
+  }
+ }catch(e){
+  var c=e&&e.code;
+  if(c==="not_granted"||c==="sampling_disabled"||c==="not_declared"||c==="capability_disabled"){document.getElementById("d-search").style.display="none";m.textContent="A busca automática não está disponível. Use o formulário abaixo."}
+  else if(c==="rate_limited"){m.textContent="Muitas buscas seguidas. Tente de novo daqui a pouco."}
+  else if(c!=="cancelled"){m.textContent="Não consegui buscar agora. Tente de novo ou use o formulário abaixo."}
+  else{m.textContent=""}
+ }finally{btn.disabled=false}
+}
+document.getElementById("s-go").addEventListener("click",buscar);
+document.getElementById("s-q").addEventListener("keydown",function(e){if(e.key==="Enter")buscar()});
+[["d-goal","goal"],["d-exp","exp"],["d-days","days"],["d-waist","waist"],["d-neck","neck"],["d-hip","hip"]].forEach(function(p){document.getElementById(p[0]).addEventListener("input",function(e){S.diet[p[1]]=e.target.value;save();renderDiet()})});
+document.getElementById("ia-go").addEventListener("click",montarIA);
+document.getElementById("ia-stop").addEventListener("click",function(){if(IACTL)IACTL.abort()});
+fillInputs();
+render();save();
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+</script>
+</body>
+</html>
